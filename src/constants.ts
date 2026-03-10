@@ -1,1 +1,1 @@
-export const ERROR_MESSAGE = 'Я затупил';
+export const ERROR_MESSAGE = 'Ошибка. Что-то пошло не так :(';

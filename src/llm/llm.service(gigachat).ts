@@ -1,26 +1,27 @@
 import { Injectable } from '@nestjs/common';
-import OpenAI from 'openai';
+import { type Message } from 'gigachat/interfaces';
+import GigaChat from 'gigachat';
+import { Agent } from 'node:https';
 import role_prompt from './role_prompt';
 import { ERROR_MESSAGE } from '../constants';
-import { LLM_BASE_URL, LLM_MODEL } from './config';
 
 @Injectable()
 export class LlmService {
-  private client: OpenAI;
-  // TODO: Перенести логику истории в chat.module
-  private history: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [];
+  private giga: GigaChat;
+  private history: Message[] = [];
 
   constructor() {
-    this.client = new OpenAI({
-      baseURL: LLM_BASE_URL,
-      apiKey: process.env.OPENAI_API_KEY,
-    });   
+    const httpsAgent = new Agent({ rejectUnauthorized: false });
+    this.giga = new GigaChat({
+      credentials: process.env.GIGACHAT_API_KEY,
+      scope: 'GIGACHAT_API_PERS',
+      httpsAgent,
+    });
   }
   
   public async getAnswer(content: string): Promise<string> {
     try {
-      const response = await this.client.chat.completions.create({
-        model: LLM_MODEL,
+      const resp = await this.giga.chat({
         messages: [
           {
             role: 'system',
@@ -32,9 +33,10 @@ export class LlmService {
             content,
           },
         ],
+        function_call: 'auto',
       });
 
-      const answer = response.choices[0].message.content;
+      const answer = resp.choices[0]?.message.content;
 
       this.history.push(
         { role: 'user', content },
