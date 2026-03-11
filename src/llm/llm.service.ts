@@ -1,23 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import OpenAI from 'openai';
 import role_prompt from './role_prompt';
-import { ERROR_MESSAGE } from '../constants';
+import { t } from '../i18n';
 import { LLM_BASE_URL, LLM_MODEL } from './config';
+
+export type ChatMessage = OpenAI.Chat.Completions.ChatCompletionMessageParam;
 
 @Injectable()
 export class LlmService {
   private client: OpenAI;
-  // TODO: Перенести логику истории в chat.module
-  private history: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [];
 
   constructor() {
     this.client = new OpenAI({
       baseURL: LLM_BASE_URL,
       apiKey: process.env.OPENAI_API_KEY,
-    });   
+    });
   }
-  
-  public async getAnswer(content: string): Promise<string> {
+
+  public async getAnswer(history: ChatMessage[]): Promise<string> {
     try {
       const response = await this.client.chat.completions.create({
         model: LLM_MODEL,
@@ -26,32 +26,14 @@ export class LlmService {
             role: 'system',
             content: role_prompt,
           },
-          ...this.history,
-          {
-            role: 'user',
-            content,
-          },
+          ...history,
         ],
       });
 
-      const answer = response.choices[0].message.content;
-
-      this.history.push(
-        { role: 'user', content },
-        { role: 'assistant', content: answer }
-      );
-
-      return answer ?? ERROR_MESSAGE;
+      return response.choices[0].message.content ?? t('COMMON').ERROR_MESSAGE;
     } catch (error) {
       console.error('LlmService getAnswer error:', error);
-      return ERROR_MESSAGE;
+      return t('COMMON').ERROR_MESSAGE;
     }
-  }
-
-  /**
-   * Очистить историю диалогов
-   */
-  public clearHistory(): void {
-    this.history.length = 0;
   }
 }

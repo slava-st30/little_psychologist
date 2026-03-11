@@ -3,7 +3,7 @@ import { type Message } from 'gigachat/interfaces';
 import GigaChat from 'gigachat';
 import { Agent } from 'node:https';
 import role_prompt from './role_prompt';
-import { ERROR_MESSAGE } from '../constants';
+import { t } from '../i18n';
 
 @Injectable()
 export class LlmService {
@@ -43,10 +43,10 @@ export class LlmService {
         { role: 'assistant', content: answer }
       );
 
-      return answer ?? ERROR_MESSAGE;
+      return answer ?? t('COMMON').ERROR_MESSAGE;
     } catch (error) {
       console.error('LlmService getAnswer error:', error);
-      return ERROR_MESSAGE;
+      return t('COMMON').ERROR_MESSAGE;
     }
   }
 
