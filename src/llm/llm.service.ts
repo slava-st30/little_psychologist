@@ -17,14 +17,17 @@ export class LlmService {
     });
   }
 
-  public async getAnswer(history: ChatMessage[]): Promise<string> {
+  public async getAnswer(
+    history: ChatMessage[],
+    systemPrompt: string = role_prompt,
+  ): Promise<string> {
     try {
       const response = await this.client.chat.completions.create({
         model: LLM_MODEL,
         messages: [
           {
             role: 'system',
-            content: role_prompt,
+            content: systemPrompt,
           },
           ...history,
         ],

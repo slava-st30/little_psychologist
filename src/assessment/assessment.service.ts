@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { LlmService, type ChatMessage } from '../llm';
 import { ASSESSMENT_QUESTIONS } from './config';
+import { ASSESSMENT_SYSTEM_PROMPT } from './prompts';
 import { type AssessmentState } from './types';
 import { t } from '../i18n';
 
@@ -51,7 +52,7 @@ export class AssessmentService {
       },
     ];
 
-    const result = await this.llmService.getAnswer(history);
+    const result = await this.llmService.getAnswer(history, ASSESSMENT_SYSTEM_PROMPT);
     return a.COMPLETED_TITLE + result;
   }
 
