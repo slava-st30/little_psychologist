@@ -5,12 +5,11 @@ export const EN = {
 
     CHAT: {
         START_MESSAGE:
-            'Hi! I am a candidate assessment bot for the service industry.\n\n' +
-            'Use:\n' +
-            '/assess — start candidate assessment\n' +
-            '/cancel — cancel assessment\n' +
-            'Or just write a message for a regular conversation.',
-        CANCEL_MESSAGE: '❌ Assessment cancelled. You can start again with /assess',
+            'Hi! I am a psychological screening bot for service industry candidates.\n\n' +
+            'Type /assess to start the assessment.',
+        CANCEL_MESSAGE: '❌ Assessment cancelled. Start again: /assess',
+        ALREADY_COMPLETED: 'You have already completed the assessment and received your result.\n\nTo retake it — /assess',
+        NOT_STARTED: 'Type /assess to start the assessment.',
     },
 
     ASSESSMENT: {

@@ -1,27 +1,48 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { Bot } from 'grammy';
-import { LlmService, type ChatMessage } from '../llm';
 import { AssessmentService } from '../assessment';
 import { t } from '../i18n';
 
 @Injectable()
 export class ChatService implements OnModuleInit {
     private bot: Bot;
-    private history: Map<number, ChatMessage[]> = new Map();
 
-    constructor(
-        private readonly llmService: LlmService,
-        private readonly assessmentService: AssessmentService,
-    ) {
+    constructor(private readonly assessmentService: AssessmentService) {
         this.bot = new Bot(process.env.BOT_TOKEN as string);
+    }
+
+    private startTyping(ctx: { replyWithChatAction(action: 'typing'): Promise<unknown> }): () => void {
+        ctx.replyWithChatAction('typing').catch(() => {});
+        const interval = setInterval(() => {
+            ctx.replyWithChatAction('typing').catch(() => {});
+        }, 4000);
+        return () => clearInterval(interval);
+    }
+
+    private async sendLong(
+        chatId: number,
+        ctx: { reply: (text: string) => Promise<unknown> },
+        text: string,
+    ) {
+        const MAX = 4096;
+        const chunks: string[] = [];
+        for (let i = 0; i < text.length; i += MAX) {
+            chunks.push(text.slice(i, i + MAX));
+        }
+        for (let i = 0; i < chunks.length; i++) {
+            await ctx.reply(chunks[i]);
+            if (i < chunks.length - 1) {
+                await this.bot.api.sendChatAction(chatId, 'typing').catch(() => {});
+                await new Promise((resolve) => setTimeout(resolve, 1500));
+            }
+        }
     }
 
     onModuleInit() {
         this.bot.command('start', (ctx) => {
             const c = t('CHAT');
-            ctx.reply(c.START_MESSAGE);
-            this.clearHistory(ctx.chat.id);
             this.assessmentService.cancelAssessment(ctx.chat.id);
+            ctx.reply(c.START_MESSAGE);
         });
 
         this.bot.command('assess', (ctx) => {
@@ -42,43 +63,32 @@ export class ChatService implements OnModuleInit {
             if (!messageText) return;
 
             if (this.assessmentService.isAssessmentActive(chatId)) {
-                ctx.replyWithChatAction('typing');
+                const stopTyping = this.startTyping(ctx);
                 try {
-                    const response = await this.assessmentService.handleAnswer(chatId, messageText);
+                    const [response] = await Promise.all([
+                        this.assessmentService.handleAnswer(chatId, messageText),
+                        new Promise<void>((resolve) => setTimeout(resolve, 800)),
+                    ]);
+                    stopTyping();
                     if (response) {
-                        ctx.reply(response);
+                        await this.sendLong(chatId, ctx, response);
                     }
                 } catch (e) {
                     console.error(e);
+                    stopTyping();
                     ctx.reply(t('COMMON').ERROR_MESSAGE);
                 }
                 return;
             }
 
-            ctx.replyWithChatAction('typing');
-            await new Promise((resolve) => setTimeout(resolve, 3000));
-
-            const userHistory = this.history.get(chatId) || [];
-
-            userHistory.push({ role: 'user', content: messageText });
-
-            try {
-                const answer = await this.llmService.getAnswer(userHistory);
-
-                userHistory.push({ role: 'assistant', content: answer });
-                this.history.set(chatId, userHistory);
-
-                ctx.reply(answer);
-            } catch (e) {
-                console.error(e);
-                ctx.reply(t('COMMON').ERROR_MESSAGE);
+            const c = t('CHAT');
+            if (this.assessmentService.isAssessmentCompleted(chatId)) {
+                ctx.reply(c.ALREADY_COMPLETED);
+            } else {
+                ctx.reply(c.NOT_STARTED);
             }
         });
 
         this.bot.start();
-    }
-
-    private clearHistory(chatId: number): void {
-        this.history.delete(chatId);
     }
 }

@@ -8,10 +8,12 @@ import { t } from '../i18n';
 @Injectable()
 export class AssessmentService {
     private states: Map<number, AssessmentState> = new Map();
+    private completed: Set<number> = new Set();
 
     constructor(private readonly llmService: LlmService) {}
 
     startAssessment(chatId: number): string {
+        this.completed.delete(chatId);
         this.states.set(chatId, {
             isActive: true,
             currentQuestionIndex: 0,
@@ -77,6 +79,7 @@ export class AssessmentService {
         }
 
         this.states.delete(chatId);
+        this.completed.add(chatId);
         return this.getAssessmentResult(state.answers);
     }
 
@@ -98,7 +101,12 @@ export class AssessmentService {
         return state?.isActive ?? false;
     }
 
+    isAssessmentCompleted(chatId: number): boolean {
+        return this.completed.has(chatId);
+    }
+
     cancelAssessment(chatId: number): void {
         this.states.delete(chatId);
+        this.completed.delete(chatId);
     }
 }
