@@ -3,6 +3,6 @@ import { ChatModule } from '../chat';
 import { LlmModule } from '../llm';
 
 @Module({
-  imports: [ChatModule, LlmModule],
+    imports: [ChatModule, LlmModule],
 })
 export class AppModule {}

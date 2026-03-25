@@ -1,3 +1,3 @@
-export { LlmModule } from './llm.module';
-export { LlmService } from './llm.service';
-export { type ChatMessage } from './llm.service';
+export { LlmModule } from './module';
+export { LlmService } from './service';
+export { type ChatMessage } from './service';

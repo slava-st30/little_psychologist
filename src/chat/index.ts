@@ -1,3 +1,3 @@
-export { ChatModule } from './chat.module';
-export { ChatService } from './chat.service';
+export { ChatModule } from './module';
+export { ChatService } from './service';
 export { AssessmentService } from '../assessment';
