@@ -12,7 +12,7 @@ export class AssessmentService {
 
     constructor(private readonly llmService: LlmService) {}
 
-    startAssessment(chatId: number): string {
+    startAssessment(chatId: number): [string, string] {
         this.completed.delete(chatId);
         this.states.set(chatId, {
             isActive: true,
@@ -24,7 +24,7 @@ export class AssessmentService {
 
         const question = ASSESSMENT_QUESTIONS[0];
         const a = t('ASSESSMENT');
-        return a.START_TITLE + a.START_INSTRUCTION + question.text;
+        return [a.START_TITLE + a.START_INSTRUCTION, question.text];
     }
 
     async handleAnswer(chatId: number, answer: string): Promise<string | null> {

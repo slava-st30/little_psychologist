@@ -21,7 +21,7 @@ export class ChatService implements OnModuleInit {
 
     private async sendLong(
         chatId: number,
-        ctx: { reply: (text: string) => Promise<unknown> },
+        ctx: { reply: (text: string, other?: object) => Promise<unknown> },
         text: string,
     ) {
         const MAX = 4096;
@@ -30,7 +30,7 @@ export class ChatService implements OnModuleInit {
             chunks.push(text.slice(i, i + MAX));
         }
         for (let i = 0; i < chunks.length; i++) {
-            await ctx.reply(chunks[i]);
+            await ctx.reply(chunks[i], { parse_mode: 'Markdown' });
             if (i < chunks.length - 1) {
                 await this.bot.api.sendChatAction(chatId, 'typing').catch(() => {});
                 await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -42,18 +42,20 @@ export class ChatService implements OnModuleInit {
         this.bot.command('start', (ctx) => {
             const c = t('CHAT');
             this.assessmentService.cancelAssessment(ctx.chat.id);
-            ctx.reply(c.START_MESSAGE);
+            ctx.reply(c.START_MESSAGE, { parse_mode: 'Markdown' });
         });
 
-        this.bot.command('assess', (ctx) => {
-            const message = this.assessmentService.startAssessment(ctx.chat.id);
-            ctx.reply(message);
+        this.bot.command('assess', async (ctx) => {
+            const [instruction, question] = this.assessmentService.startAssessment(ctx.chat.id);
+            await ctx.reply(instruction, { parse_mode: 'Markdown' });
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+            await ctx.reply(question, { parse_mode: 'Markdown' });
         });
 
         this.bot.command('cancel', (ctx) => {
             const c = t('CHAT');
             this.assessmentService.cancelAssessment(ctx.chat.id);
-            ctx.reply(c.CANCEL_MESSAGE);
+            ctx.reply(c.CANCEL_MESSAGE, { parse_mode: 'Markdown' });
         });
 
         this.bot.on('message', async (ctx) => {
@@ -76,18 +78,24 @@ export class ChatService implements OnModuleInit {
                 } catch (e) {
                     console.error(e);
                     stopTyping();
-                    ctx.reply(t('COMMON').ERROR_MESSAGE);
+                    ctx.reply(t('COMMON').ERROR_MESSAGE, { parse_mode: 'Markdown' });
                 }
                 return;
             }
 
             const c = t('CHAT');
             if (this.assessmentService.isAssessmentCompleted(chatId)) {
-                ctx.reply(c.ALREADY_COMPLETED);
+                ctx.reply(c.ALREADY_COMPLETED, { parse_mode: 'Markdown' });
             } else {
-                ctx.reply(c.NOT_STARTED);
+                ctx.reply(c.NOT_STARTED, { parse_mode: 'Markdown' });
             }
         });
+
+        this.bot.api.setMyCommands([
+            { command: 'start', description: 'Начать / перезапустить бота' },
+            { command: 'assess', description: 'Начать оценку кандидата' },
+            { command: 'cancel', description: 'Отменить текущую оценку' },
+        ]);
 
         this.bot.start();
     }
