@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { Types } from 'mongoose';
 import { LlmService, type ChatMessage } from '../llm';
+import { DialogService } from '../dialog/service';
 import { ASSESSMENT_QUESTIONS } from './config';
 import { ASSESSMENT_SYSTEM_PROMPT, ANSWER_CHECK_PROMPT } from './prompts';
-import { type AssessmentState } from './types';
+import { type AssessmentState, type AnswerMeta } from './types';
 import { t } from '../i18n';
 
 @Injectable()
@@ -10,9 +12,22 @@ export class AssessmentService {
     private states: Map<number, AssessmentState> = new Map();
     private completed: Set<number> = new Set();
 
-    constructor(private readonly llmService: LlmService) {}
+    constructor(
+        private readonly llmService: LlmService,
+        private readonly candidateService: DialogService,
+    ) {}
 
-    startAssessment(chatId: number): [string, string] {
+    getStartMessages(): [string, string] {
+        const a = t('ASSESSMENT');
+        return [a.START_TITLE + a.START_INSTRUCTION, ASSESSMENT_QUESTIONS[0].text];
+    }
+
+    startAssessmentForCandidate(
+        chatId: number,
+        candidateId: Types.ObjectId,
+        candidateName: string,
+        recruiterChatId: number,
+    ): void {
         this.completed.delete(chatId);
         this.states.set(chatId, {
             isActive: true,
@@ -20,17 +35,16 @@ export class AssessmentService {
             answers: [],
             clarificationAsked: false,
             pendingAnswer: null,
+            candidateId,
+            candidateName,
+            recruiterChatId,
         });
-
-        const question = ASSESSMENT_QUESTIONS[0];
-        const a = t('ASSESSMENT');
-        return [a.START_TITLE + a.START_INSTRUCTION, question.text];
     }
 
-    async handleAnswer(chatId: number, answer: string): Promise<string | null> {
+    async handleAnswer(chatId: number, answer: string): Promise<[string | null, AnswerMeta]> {
         const state = this.states.get(chatId);
         if (!state || !state.isActive) {
-            return null;
+            return [null, { completed: false }];
         }
 
         const a = t('ASSESSMENT');
@@ -58,14 +72,14 @@ export class AssessmentService {
         state.clarificationAsked = true;
         state.pendingAnswer = answer;
         this.states.set(chatId, state);
-        return a.CLARIFICATION_PREFIX + checkResult;
+        return [a.CLARIFICATION_PREFIX + checkResult, { completed: false }];
     }
 
     private async acceptAnswer(
         chatId: number,
         state: AssessmentState,
         answer: string,
-    ): Promise<string> {
+    ): Promise<[string, AnswerMeta]> {
         const a = t('ASSESSMENT');
         state.answers.push(answer);
         state.clarificationAsked = false;
@@ -75,12 +89,25 @@ export class AssessmentService {
         if (state.currentQuestionIndex < ASSESSMENT_QUESTIONS.length) {
             const nextQuestion = ASSESSMENT_QUESTIONS[state.currentQuestionIndex];
             this.states.set(chatId, state);
-            return a.ANSWER_ACCEPTED + nextQuestion.text;
+            return [a.ANSWER_ACCEPTED + nextQuestion.text, { completed: false }];
         }
 
         this.states.delete(chatId);
         this.completed.add(chatId);
-        return this.getAssessmentResult(state.answers);
+
+        const report = await this.getAssessmentResult(state.answers);
+        await this.candidateService.saveReport(state.candidateId, state.answers, report);
+
+        return [
+            report,
+            {
+                completed: true,
+                report,
+                answers: state.answers,
+                recruiterChatId: state.recruiterChatId,
+                candidateName: state.candidateName,
+            },
+        ];
     }
 
     private async getAssessmentResult(answers: string[]): Promise<string> {
@@ -91,14 +118,11 @@ export class AssessmentService {
                 content: a.RESULT_TEMPLATE(answers),
             },
         ];
-
-        const result = await this.llmService.getAnswer(history, ASSESSMENT_SYSTEM_PROMPT);
-        return a.COMPLETED_TITLE + result;
+        return this.llmService.getAnswer(history, ASSESSMENT_SYSTEM_PROMPT);
     }
 
     isAssessmentActive(chatId: number): boolean {
-        const state = this.states.get(chatId);
-        return state?.isActive ?? false;
+        return this.states.get(chatId)?.isActive ?? false;
     }
 
     isAssessmentCompleted(chatId: number): boolean {

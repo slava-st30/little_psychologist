@@ -1,8 +1,11 @@
 import { Module } from '@nestjs/common';
-import { ChatModule } from '../chat';
-import { LlmModule } from '../llm';
+import { MongooseModule } from '@nestjs/mongoose';
+import { DialogModule } from '../dialog/module';
 
 @Module({
-    imports: [ChatModule, LlmModule],
+    imports: [
+        MongooseModule.forRoot(process.env.MONGODB_URI as string),
+        DialogModule,
+    ],
 })
 export class AppModule {}

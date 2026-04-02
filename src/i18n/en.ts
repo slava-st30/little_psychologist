@@ -4,12 +4,16 @@ export const EN = {
     },
 
     CHAT: {
-        START_MESSAGE:
-            'Hi! I am a psychological screening bot for service industry candidates.\n\n' +
-            'Type /assess to start the assessment.',
-        CANCEL_MESSAGE: '❌ Assessment cancelled. Start again: /assess',
-        ALREADY_COMPLETED: 'You have already completed the assessment and received your result.\n\nTo retake it — /assess',
-        NOT_STARTED: 'Type /assess to start the assessment.',
+        RECRUITER_START:
+            '👋 Welcome to **HoReCa Recruit**.\n\n' +
+            'This service helps you evaluate candidates through a behavioral interview.\n\n' +
+            'To add a candidate and get their interview link:\n' +
+            '`/create First Last`',
+        CANDIDATE_THANK_YOU:
+            '🙏 Thank you for completing the interview!\n\n' +
+            'Your answers have been received and will be reviewed. We will be in touch soon.',
+        CANCEL_MESSAGE: '❌ Assessment cancelled.',
+        ALREADY_COMPLETED: 'You have already completed the interview. Thank you!',
     },
 
     ASSESSMENT: {

@@ -24,6 +24,7 @@ export class LlmService {
         try {
             const response = await this.client.chat.completions.create({
                 model: LLM_MODEL,
+                max_tokens: 4096,
                 messages: [
                     {
                         role: 'system',
