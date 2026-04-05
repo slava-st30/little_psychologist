@@ -1,9 +1,9 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { Bot } from 'grammy';
-import { AssessmentService } from '../assessment';
-import { DialogService } from './service';
+import { AssessmentService } from '../../assessment';
+import { DialogService } from '../service';
 import { RecruiterBot } from './recruiter.bot';
-import { t } from '../i18n';
+import { t } from '../../i18n';
 
 @Injectable()
 export class CandidateBot implements OnModuleInit {
