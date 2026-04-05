@@ -23,6 +23,8 @@ export class VkRecruiterBot implements OnModuleInit {
             .textButton({ label: '📋 Список', color: Keyboard.PRIMARY_COLOR })
             .row()
             .textButton({ label: '➕ Добавить кандидата', color: Keyboard.POSITIVE_COLOR })
+            .row()
+            .textButton({ label: 'ℹ️ Инфо', color: 'secondary' as any })
             .toString();
     }
 
@@ -96,7 +98,7 @@ export class VkRecruiterBot implements OnModuleInit {
             // Ждём имя кандидата
             if (this.waitingForName.has(peerId)) {
                 const isCommand = ['📋 список', 'список', '➕ добавить кандидата', 'добавить кандидата',
-                    'начать', 'старт', 'помощь'].includes(lower) || payload?.cmd;
+                    'начать', 'старт', 'помощь', 'ℹ️ инфо', 'инфо'].includes(lower) || payload?.cmd;
                 if (!text || isCommand) {
                     this.waitingForName.delete(peerId);
                 } else {
@@ -108,7 +110,7 @@ export class VkRecruiterBot implements OnModuleInit {
                 }
             }
 
-            if (lower === 'начать' || lower === 'старт' || lower === 'помощь') {
+            if (lower === 'начать' || lower === 'старт' || lower === 'помощь' || lower === 'ℹ️ инфо' || lower === 'инфо') {
                 await this.send(
                     peerId,
                     'HoReCa Recruit — сервис психологической оценки кандидатов.\n\nВыберите действие:',
