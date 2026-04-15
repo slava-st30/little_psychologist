@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { Types } from 'mongoose';
-import { LlmService, type ChatMessage } from '../llm';
-import { DialogService } from '../bots/service';
+import { LlmService, type ChatMessage } from '@llm';
+import { DialogService } from '@bots/service';
 import { ASSESSMENT_QUESTIONS } from './config';
 import { ASSESSMENT_SYSTEM_PROMPT, ANSWER_CHECK_PROMPT } from './prompts';
 import { type AssessmentState, type AnswerMeta } from './types';
-import { t } from '../i18n';
+import { t } from '@i18n';
 
 @Injectable()
 export class AssessmentService {

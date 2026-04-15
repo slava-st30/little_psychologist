@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { VkRecruiterBot } from './recruiter.bot';
 import { VkCandidateBot } from './candidate.bot';
-import { DialogModule } from '../tg/module';
+import { DialogModule } from '@bots/tg/module';
 
 @Module({
     imports: [DialogModule],

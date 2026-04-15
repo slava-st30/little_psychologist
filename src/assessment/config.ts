@@ -1,4 +1,4 @@
-import { RU } from '../i18n/ru';
+import { RU } from '@i18n/ru';
 
 const q = RU.ASSESSMENT.QUESTIONS;
 

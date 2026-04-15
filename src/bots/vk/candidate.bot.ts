@@ -1,8 +1,9 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { VK } from 'vk-io';
-import { AssessmentService } from '../../assessment';
-import { DialogService } from '../service';
+import { AssessmentService } from '@assessment';
+import { DialogService } from '@bots/service';
 import { VkRecruiterBot } from './recruiter.bot';
+import { t } from '@i18n';
 
 @Injectable()
 export class VkCandidateBot implements OnModuleInit {
@@ -54,13 +55,14 @@ export class VkCandidateBot implements OnModuleInit {
             const peerId: number = ctx.peerId;
             const text: string = ctx.text?.trim() ?? '';
             const ref: string | undefined = ctx.message?.ref;
+            const vc = t('VK_CANDIDATE');
 
             // Отмена интервью
             if (text.toLowerCase() === 'отмена') {
                 if (this.assessmentService.isAssessmentActive(peerId)) {
                     this.assessmentService.cancelAssessment(peerId);
                     await this.dialogService.cancelInterviewByChatId(peerId);
-                    await this.send(peerId, '❌ Интервью отменено.');
+                    await this.send(peerId, vc.CANCEL_MESSAGE);
                 }
                 return;
             }
@@ -69,12 +71,12 @@ export class VkCandidateBot implements OnModuleInit {
             if (ref && !this.assessmentService.isAssessmentActive(peerId)) {
                 const candidate = await this.dialogService.findByToken(ref);
                 if (!candidate) {
-                    await this.send(peerId, 'Ссылка недействительна.');
+                    await this.send(peerId, vc.INVALID_LINK);
                     return;
                 }
                 const started = await this.dialogService.hasStartedInterview(candidate._id as any);
                 if (started) {
-                    await this.send(peerId, 'Эта ссылка уже была использована.');
+                    await this.send(peerId, vc.LINK_ALREADY_USED);
                     return;
                 }
                 await this.dialogService.createInterview(candidate._id as any, peerId);
@@ -86,7 +88,7 @@ export class VkCandidateBot implements OnModuleInit {
                 );
                 const [instruction, question] = this.assessmentService.getStartMessages();
                 const plainInstruction = instruction.replace(/\*+/g, '').replace(/`/g, '');
-                await this.send(peerId, `Привет, ${candidate.name}!\n\n${plainInstruction}`);
+                await this.send(peerId, vc.GREETING(candidate.name) + plainInstruction);
                 await new Promise((resolve) => setTimeout(resolve, 1500));
                 await this.send(peerId, question);
                 return;
@@ -99,18 +101,18 @@ export class VkCandidateBot implements OnModuleInit {
                     const [response, meta] = await this.assessmentService.handleAnswer(peerId, text);
                     if (response) {
                         if (meta?.completed && meta.report && meta.recruiterChatId) {
-                            await this.send(peerId, '🙏 Спасибо за прохождение интервью! Ваши ответы получены.');
+                            await this.send(peerId, vc.THANK_YOU);
 
                             const answersText =
-                                meta.answers?.map((a, i) => `Вопрос ${i + 1}:\n${a}`).join('\n\n') ?? '';
+                                meta.answers?.map((a, i) => vc.QUESTION_PREFIX(i + 1) + a).join('\n\n') ?? '';
 
                             await this.recruiterBot.sendMessageToRecruiter(
                                 meta.recruiterChatId,
-                                `Кандидат: ${meta.candidateName}\n\nОтветы:\n\n${answersText}`,
+                                vc.ANSWERS_PREFIX(meta.candidateName ?? '') + answersText,
                             );
                             await this.recruiterBot.sendMessageToRecruiter(
                                 meta.recruiterChatId,
-                                `Анализ:\n\n${meta.report}`,
+                                vc.ANALYSIS_PREFIX + meta.report,
                             );
                         } else {
                             const plain = response.replace(/\*+/g, '').replace(/`/g, '');
@@ -119,16 +121,16 @@ export class VkCandidateBot implements OnModuleInit {
                     }
                 } catch (e) {
                     console.error(e);
-                    await this.send(peerId, 'Произошла ошибка. Попробуйте ещё раз.');
+                    await this.send(peerId, vc.ERROR_MESSAGE);
                 }
                 return;
             }
 
             // По умолчанию
             if (this.assessmentService.isAssessmentCompleted(peerId)) {
-                await this.send(peerId, 'Вы уже прошли интервью. Спасибо!');
+                await this.send(peerId, vc.ALREADY_COMPLETED);
             } else {
-                await this.send(peerId, 'Для начала интервью воспользуйтесь ссылкой от рекрутера.');
+                await this.send(peerId, vc.USE_RECRUITER_LINK);
             }
         });
 

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { DialogModule } from '../bots/tg/module';
-import { VkModule } from '../bots/vk/module';
+import { DialogModule } from '@bots/tg/module';
+import { VkModule } from '@bots/vk/module';
 
 @Module({
     imports: [

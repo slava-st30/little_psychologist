@@ -1,9 +1,9 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { Bot } from 'grammy';
-import { AssessmentService } from '../../assessment';
-import { DialogService } from '../service';
+import { AssessmentService } from '@assessment';
+import { DialogService } from '@bots/service';
 import { RecruiterBot } from './recruiter.bot';
-import { t } from '../../i18n';
+import { t } from '@i18n';
 
 @Injectable()
 export class CandidateBot implements OnModuleInit {
@@ -47,21 +47,22 @@ export class CandidateBot implements OnModuleInit {
     onModuleInit() {
         this.bot.command('start', async (ctx) => {
             const token = ctx.match?.trim();
+            const tc = t('TG_CANDIDATE');
 
             if (!token) {
-                await ctx.reply('Ссылка недействительна.', { parse_mode: 'Markdown' });
+                await ctx.reply(tc.INVALID_LINK, { parse_mode: 'Markdown' });
                 return;
             }
 
             const candidate = await this.recrutingService.findByToken(token);
             if (!candidate) {
-                await ctx.reply('Ссылка недействительна.', { parse_mode: 'Markdown' });
+                await ctx.reply(tc.INVALID_LINK, { parse_mode: 'Markdown' });
                 return;
             }
 
             const started = await this.recrutingService.hasStartedInterview(candidate._id as any);
             if (started) {
-                await ctx.reply('Эта ссылка уже была использована.');
+                await ctx.reply(tc.LINK_ALREADY_USED);
                 return;
             }
 
@@ -69,7 +70,7 @@ export class CandidateBot implements OnModuleInit {
             this.assessmentService.startAssessmentForCandidate(ctx.chat.id, candidate._id as any, candidate.name, candidate.recruiterChatId);
 
             const [instruction, question] = this.assessmentService.getStartMessages();
-            await ctx.reply(`Привет, ${candidate.name}! 👋\n\n` + instruction, { parse_mode: 'Markdown' });
+            await ctx.reply(tc.GREETING(candidate.name) + instruction, { parse_mode: 'Markdown' });
             await new Promise((resolve) => setTimeout(resolve, 1500));
             await ctx.reply(question, { parse_mode: 'Markdown' });
         });
@@ -99,6 +100,7 @@ export class CandidateBot implements OnModuleInit {
                     if (response) {
                         if (meta?.completed && meta.report && meta.recruiterChatId) {
                             const recruiterChatId = meta.recruiterChatId;
+                            const tc = t('TG_CANDIDATE');
                             // Thank candidate
                             await ctx.reply(t('CHAT').CANDIDATE_THANK_YOU, { parse_mode: 'Markdown' });
                             // Send answers + report to recruiter via recruiter bot
@@ -106,14 +108,14 @@ export class CandidateBot implements OnModuleInit {
                                 this.recruiterBot.bot.api.sendMessage(recruiterChatId, text, other as any);
 
                             const answersText = meta.answers
-                                ?.map((a, i) => `*Вопрос ${i + 1}:*\n${a}`)
+                                ?.map((a, i) => tc.QUESTION_PREFIX(i + 1) + a)
                                 .join('\n\n') ?? '';
 
                             await this.sendLong(recruiterChatId, { reply: send },
-                                `*Кандидат: ${meta.candidateName}*\n\n*Ответы:*\n\n${answersText}`,
+                                tc.ANSWERS_PREFIX(meta.candidateName ?? '') + answersText,
                             );
                             await this.sendLong(recruiterChatId, { reply: send },
-                                `*Анализ:*\n\n` + meta.report,
+                                tc.ANALYSIS_PREFIX + meta.report,
                             );
                         } else {
                             await this.sendLong(chatId, ctx, response);
@@ -131,12 +133,13 @@ export class CandidateBot implements OnModuleInit {
             if (this.assessmentService.isAssessmentCompleted(chatId)) {
                 ctx.reply(c.ALREADY_COMPLETED, { parse_mode: 'Markdown' });
             } else {
-                ctx.reply(c.RECRUITER_START, { parse_mode: 'Markdown' });
+                ctx.reply(c.USE_RECRUITER_LINK, { parse_mode: 'Markdown' });
             }
         });
 
+        const tc = t('TG_CANDIDATE');
         this.bot.api.setMyCommands([
-            { command: 'cancel', description: 'Отменить интервью' },
+            { command: 'cancel', description: tc.CMD_CANCEL_DESC },
         ]);
 
         this.bot.catch((err) => {

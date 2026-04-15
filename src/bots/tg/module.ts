@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Candidate, CandidateSchema } from '../models/candidate.schema';
-import { Interview, InterviewSchema } from '../models/interview.schema';
-import { DialogService } from '../service';
+import { Candidate, CandidateSchema } from '@bots/models/candidate.schema';
+import { Interview, InterviewSchema } from '@bots/models/interview.schema';
+import { DialogService } from '@bots/service';
 import { RecruiterBot } from './recruiter.bot';
 import { CandidateBot } from './candidate.bot';
-import { AssessmentService } from '../../assessment';
-import { LlmModule } from '../../llm';
+import { AssessmentService } from '@assessment';
+import { LlmModule } from '@llm';
 
 @Module({
     imports: [

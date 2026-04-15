@@ -1,7 +1,8 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { VK, Keyboard } from 'vk-io';
-import { AssessmentService } from '../../assessment';
-import { DialogService } from '../service';
+import { AssessmentService } from '@assessment';
+import { DialogService } from '@bots/service';
+import { t } from '@i18n';
 
 @Injectable()
 export class VkRecruiterBot implements OnModuleInit {
@@ -19,12 +20,13 @@ export class VkRecruiterBot implements OnModuleInit {
     }
 
     private get mainKeyboard() {
+        const vk = t('VK_RECRUIT');
         return Keyboard.builder()
-            .textButton({ label: '📋 Список', color: Keyboard.PRIMARY_COLOR })
+            .textButton({ label: vk.BTN_LIST, color: Keyboard.PRIMARY_COLOR })
             .row()
-            .textButton({ label: '➕ Добавить кандидата', color: Keyboard.POSITIVE_COLOR })
+            .textButton({ label: vk.BTN_ADD_CANDIDATE, color: Keyboard.POSITIVE_COLOR })
             .row()
-            .textButton({ label: 'ℹ️ Инфо', color: 'secondary' as any })
+            .textButton({ label: vk.BTN_INFO, color: 'secondary' as any })
             .toString();
     }
 
@@ -68,6 +70,7 @@ export class VkRecruiterBot implements OnModuleInit {
             const text: string = ctx.text?.trim() ?? '';
             const lower = text.toLowerCase();
             const payload = ctx.messagePayload as { cmd?: string; num?: number } | undefined;
+            const vk = t('VK_RECRUIT');
 
             await this.typing(peerId);
 
@@ -76,10 +79,10 @@ export class VkRecruiterBot implements OnModuleInit {
                 const interviews = await this.dialogService.getInterviewsByRecruiter(peerId);
                 const found = interviews[(payload.num ?? 0) - 1];
                 if (!found || found.status !== 'completed' || !found.report) {
-                    await this.send(peerId, 'Отчёт ещё не готов.', this.mainKeyboard);
+                    await this.send(peerId, vk.REPORT_NOT_READY, this.mainKeyboard);
                     return;
                 }
-                await this.sendLong(peerId, `Отчёт: ${found.candidate.name}\n\n${found.report}`, this.mainKeyboard);
+                await this.sendLong(peerId, vk.REPORT_PREFIX(found.candidate.name) + found.report, this.mainKeyboard);
                 return;
             }
 
@@ -87,67 +90,67 @@ export class VkRecruiterBot implements OnModuleInit {
                 const interviews = await this.dialogService.getInterviewsByRecruiter(peerId);
                 const found = interviews[(payload.num ?? 0) - 1];
                 if (!found) {
-                    await this.send(peerId, 'Кандидат не найден.', this.mainKeyboard);
+                    await this.send(peerId, vk.CANDIDATE_NOT_FOUND, this.mainKeyboard);
                     return;
                 }
                 await this.dialogService.deleteCandidate(found.candidateId);
-                await this.send(peerId, `Кандидат ${found.candidate.name} удалён.`, this.mainKeyboard);
+                await this.send(peerId, vk.CANDIDATE_DELETED(found.candidate.name), this.mainKeyboard);
                 return;
             }
 
             // Ждём имя кандидата
             if (this.waitingForName.has(peerId)) {
-                const isCommand = ['📋 список', 'список', '➕ добавить кандидата', 'добавить кандидата',
-                    'начать', 'старт', 'помощь', 'ℹ️ инфо', 'инфо'].includes(lower) || payload?.cmd;
+                const isCommand = [
+                    vk.BTN_LIST.toLowerCase(), 'список',
+                    vk.BTN_ADD_CANDIDATE.toLowerCase(), 'добавить кандидата',
+                    'начать', 'старт', 'помощь',
+                    vk.BTN_INFO.toLowerCase(), 'инфо',
+                ].includes(lower) || payload?.cmd;
                 if (!text || isCommand) {
                     this.waitingForName.delete(peerId);
                 } else {
                     this.waitingForName.delete(peerId);
                     const candidate = await this.dialogService.createCandidate(peerId, text);
                     const link = `https://vk.me/club${process.env.CANDIDATE_VK_GROUP_ID}?ref=${candidate.token}`;
-                    await this.send(peerId, `✅ Кандидат ${text} добавлен.\n\nСсылка для интервью:\n${link}`, this.mainKeyboard);
+                    await this.send(peerId, vk.CANDIDATE_ADDED(text, link), this.mainKeyboard);
                     return;
                 }
             }
 
-            if (lower === 'начать' || lower === 'старт' || lower === 'помощь' || lower === 'ℹ️ инфо' || lower === 'инфо') {
-                await this.send(
-                    peerId,
-                    'HoReCa Recruit — сервис психологической оценки кандидатов.\n\nВыберите действие:',
-                    this.mainKeyboard,
-                );
+            if (lower === 'начать' || lower === 'старт' || lower === 'помощь' || lower === vk.BTN_INFO.toLowerCase() || lower === 'инфо') {
+                await this.send(peerId, vk.WELCOME, this.mainKeyboard);
                 return;
             }
 
-            if (lower === '➕ добавить кандидата' || lower === 'добавить кандидата') {
+            if (lower === vk.BTN_ADD_CANDIDATE.toLowerCase() || lower === 'добавить кандидата') {
                 this.waitingForName.add(peerId);
-                await this.send(peerId, 'Введите имя и фамилию кандидата:');
+                await this.send(peerId, vk.ENTER_NAME_PROMPT);
                 return;
             }
 
             if (lower.startsWith('создать ')) {
                 const name = text.slice(8).trim();
                 if (!name) {
-                    await this.send(peerId, 'Укажите имя: создать Иван Иванов', this.mainKeyboard);
+                    await this.send(peerId, vk.SPECIFY_NAME_HINT, this.mainKeyboard);
                     return;
                 }
                 const candidate = await this.dialogService.createCandidate(peerId, name);
                 const link = `https://vk.me/club${process.env.CANDIDATE_VK_GROUP_ID}?ref=${candidate.token}`;
-                await this.send(peerId, `✅ Кандидат ${name} добавлен.\n\nСсылка для интервью:\n${link}`, this.mainKeyboard);
+                await this.send(peerId, vk.CANDIDATE_ADDED(name, link), this.mainKeyboard);
                 return;
             }
 
-            if (lower === '📋 список' || lower === 'список') {
+            if (lower === vk.BTN_LIST.toLowerCase() || lower === 'список') {
                 const interviews = await this.dialogService.getInterviewsByRecruiter(peerId);
                 if (!interviews.length) {
-                    await this.send(peerId, 'Кандидатов пока нет.', this.mainKeyboard);
+                    await this.send(peerId, vk.NO_CANDIDATES, this.mainKeyboard);
                     return;
                 }
                 const statusLabel: Record<string, string> = {
-                    pending: '⏳ Не начал',
-                    in_progress: '🔄 В процессе',
-                    completed: '✅ Завершил',
-                    cancelled: '❌ Отменил',
+                    pending: vk.STATUS_PENDING,
+                    in_progress: vk.STATUS_IN_PROGRESS,
+                    completed: vk.STATUS_COMPLETED,
+                    cancelled: vk.STATUS_CANCELLED,
                 };
 
                 for (let i = 0; i < interviews.length; i++) {
@@ -155,8 +158,8 @@ export class VkRecruiterBot implements OnModuleInit {
                     const num = i + 1;
                     const status = statusLabel[interview.status] ?? interview.status;
                     const keyboard = Keyboard.builder()
-                        .textButton({ label: `👁 Отчёт`, color: Keyboard.PRIMARY_COLOR, payload: { cmd: 'report', num } })
-                        .textButton({ label: `🗑 Удалить`, color: Keyboard.NEGATIVE_COLOR, payload: { cmd: 'remove', num } })
+                        .textButton({ label: vk.BTN_REPORT, color: Keyboard.PRIMARY_COLOR, payload: { cmd: 'report', num } })
+                        .textButton({ label: vk.BTN_DELETE, color: Keyboard.NEGATIVE_COLOR, payload: { cmd: 'remove', num } })
                         .inline()
                         .toString();
                     await this.send(peerId, `${num}. ${interview.candidate.name} — ${status}`, keyboard);
@@ -167,41 +170,41 @@ export class VkRecruiterBot implements OnModuleInit {
             if (lower.startsWith('кандидат ')) {
                 const num = parseInt(text.slice(9).trim());
                 if (isNaN(num)) {
-                    await this.send(peerId, 'Укажите номер: кандидат 1', this.mainKeyboard);
+                    await this.send(peerId, vk.SPECIFY_NUM_CANDIDATE, this.mainKeyboard);
                     return;
                 }
                 const interviews = await this.dialogService.getInterviewsByRecruiter(peerId);
                 const found = interviews[num - 1];
                 if (!found) {
-                    await this.send(peerId, `Кандидат ${num} не найден.`, this.mainKeyboard);
+                    await this.send(peerId, vk.CANDIDATE_NOT_FOUND_NUM(num), this.mainKeyboard);
                     return;
                 }
                 if (found.status !== 'completed' || !found.report) {
-                    await this.send(peerId, `${found.candidate.name} ещё не завершил интервью.`, this.mainKeyboard);
+                    await this.send(peerId, vk.CANDIDATE_NOT_COMPLETED(found.candidate.name), this.mainKeyboard);
                     return;
                 }
-                await this.sendLong(peerId, `Отчёт: ${found.candidate.name}\n\n${found.report}`, this.mainKeyboard);
+                await this.sendLong(peerId, vk.REPORT_PREFIX(found.candidate.name) + found.report, this.mainKeyboard);
                 return;
             }
 
             if (lower.startsWith('удалить ')) {
                 const num = parseInt(text.slice(8).trim());
                 if (isNaN(num)) {
-                    await this.send(peerId, 'Укажите номер: удалить 1', this.mainKeyboard);
+                    await this.send(peerId, vk.SPECIFY_NUM_DELETE, this.mainKeyboard);
                     return;
                 }
                 const interviews = await this.dialogService.getInterviewsByRecruiter(peerId);
                 const found = interviews[num - 1];
                 if (!found) {
-                    await this.send(peerId, `Кандидат ${num} не найден.`, this.mainKeyboard);
+                    await this.send(peerId, vk.CANDIDATE_NOT_FOUND_NUM(num), this.mainKeyboard);
                     return;
                 }
                 await this.dialogService.deleteCandidate(found.candidateId);
-                await this.send(peerId, `Кандидат ${found.candidate.name} удалён.`, this.mainKeyboard);
+                await this.send(peerId, vk.CANDIDATE_DELETED(found.candidate.name), this.mainKeyboard);
                 return;
             }
 
-            await this.send(peerId, 'Выберите действие:', this.mainKeyboard);
+            await this.send(peerId, vk.CHOOSE_ACTION, this.mainKeyboard);
         });
 
         this.vk.updates.start().catch(console.error);

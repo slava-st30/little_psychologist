@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import OpenAI from 'openai';
 import role_prompt from './role_prompt';
-import { t } from '../i18n';
+import { t } from '@i18n';
 import { LLM_BASE_URL, LLM_MODEL } from './config';
 
 export type ChatMessage = OpenAI.Chat.Completions.ChatCompletionMessageParam;
