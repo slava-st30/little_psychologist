@@ -4,11 +4,6 @@ export const EN = {
     },
 
     CHAT: {
-        RECRUITER_START:
-            '👋 Welcome to **HoReCa Recruit**.\n\n' +
-            'This service helps you evaluate candidates through a behavioral interview.\n\n' +
-            'To add a candidate and get their interview link:\n' +
-            '`/create First Last`',
         CANDIDATE_THANK_YOU:
             '🙏 Thank you for completing the interview!\n\n' +
             'Your answers have been received and will be reviewed. We will be in touch soon.',
@@ -23,24 +18,33 @@ export const EN = {
     },
 
     VK_RECRUIT: {
-        // Keyboard button labels
+        // Persistent keyboard buttons
+        BTN_ADD_CANDIDATE: '➕ Add',
         BTN_LIST: '📋 List',
-        BTN_ADD_CANDIDATE: '➕ Add candidate',
         BTN_INFO: 'ℹ️ Info',
-        BTN_REPORT: '👁 Report',
-        BTN_DELETE: '🗑 Delete',
+
+        // Inline action buttons
+        BTN_REPORT: '📊 Report',
+        BTN_DELETE: '❌ Delete',
+        BTN_CONFIRM_DELETE: '✅ Yes, delete',
+        BTN_CANCEL_DELETE: '↩️ Cancel',
 
         // Welcome / info
-        WELCOME: 'HoReCa Recruit — psychological candidate assessment service.\n\nChoose an action:',
+        WELCOME:
+            '👋 HoReCa Recruit — psychological candidate assessment service for HoReCa.\n\n' +
+            'How it works:\n' +
+            '1. Press ➕ Add — enter the candidate\'s name and get a link\n' +
+            '2. Send the link to the candidate — they complete a 4-question interview\n' +
+            '3. After completion, the report appears in 📋 List',
         CHOOSE_ACTION: 'Choose an action:',
 
-        // Candidate creation
+        // Add candidate dialog
         ENTER_NAME_PROMPT: 'Enter the candidate\'s first and last name:',
-        SPECIFY_NAME_HINT: 'Provide a name: create John Doe',
         CANDIDATE_ADDED: (name: string, link: string) =>
             `✅ Candidate ${name} added.\n\nInterview link:\n${link}`,
 
         // List / status labels
+        LIST_HEADER: 'Candidates:',
         NO_CANDIDATES: 'No candidates yet.',
         STATUS_PENDING: '⏳ Not started',
         STATUS_IN_PROGRESS: '🔄 In progress',
@@ -52,12 +56,11 @@ export const EN = {
         REPORT_PREFIX: (name: string) => `Report: ${name}\n\n`,
 
         // Candidate lookup / removal
-        CANDIDATE_NOT_FOUND_NUM: (num: number) => `Candidate ${num} not found.`,
         CANDIDATE_NOT_FOUND: 'Candidate not found.',
         CANDIDATE_NOT_COMPLETED: (name: string) => `${name} has not completed the interview yet.`,
+        DELETE_CONFIRM: (name: string) => `Delete candidate ${name}?`,
+        DELETE_CANCELLED: 'Deletion cancelled.',
         CANDIDATE_DELETED: (name: string) => `Candidate ${name} deleted.`,
-        SPECIFY_NUM_CANDIDATE: 'Provide a number: candidate 1',
-        SPECIFY_NUM_DELETE: 'Provide a number: delete 1',
     },
 
     VK_CANDIDATE: {
@@ -75,35 +78,54 @@ export const EN = {
     },
 
     TG_RECRUIT: {
-        // /create command
-        SPECIFY_NAME_HINT: 'Provide the candidate\'s name: `/create John Doe`',
+        // Persistent reply keyboard buttons
+        BTN_ADD: '➕ Add',
+        BTN_LIST: '📋 List',
+        BTN_INFO: 'ℹ️ Info',
+
+        // Inline action buttons
+        BTN_REPORT: '📊 Report',
+        BTN_DELETE: '❌ Delete',
+        BTN_CONFIRM_DELETE: '✅ Yes, delete',
+        BTN_CANCEL_DELETE: '↩️ Cancel',
+        BTN_COPY_LINK: '📋 Copy link',
+
+        // Welcome / info
+        WELCOME:
+            '👋 *HoReCa Recruit* — psychological candidate assessment service for HoReCa.\n\n' +
+            '*How it works:*\n' +
+            '1. Press ➕ Add — enter the candidate\'s name and get a link\n' +
+            '2. Send the link to the candidate — they complete a 4-question interview\n' +
+            '3. After completion, the report appears in 📋 List',
+
+        // Add candidate dialog
+        ENTER_NAME_PROMPT: 'Enter the candidate\'s first and last name:',
         CANDIDATE_ADDED: (name: string, link: string) =>
             `✅ Candidate ${name} added.\n\nInterview link:\n${link}`,
 
-        // /list command
-        NO_CANDIDATES: 'No candidates yet. Add the first one: `/create First Last`',
+        // List / status labels
+        LIST_HEADER: 'Candidates:',
+        NO_CANDIDATES: 'No candidates yet.',
         STATUS_PENDING: '⏳ Not started',
         STATUS_IN_PROGRESS: '🔄 In progress',
         STATUS_COMPLETED: '✅ Completed',
         STATUS_CANCELLED: '❌ Cancelled',
-        LIST_FOOTER: '\n\nTo view a report: `/candidate <number>`',
 
-        // /candidate command
-        SPECIFY_NUM_CANDIDATE: 'Provide a number from the list: `/candidate 1`',
+        // Report
         CANDIDATE_NOT_FOUND: (num: number) => `Candidate with number ${num} not found.`,
+        CANDIDATE_NOT_FOUND_TEXT: 'Candidate not found.',
         CANDIDATE_NOT_COMPLETED: (name: string) => `*${name}* has not completed the interview yet.`,
+        CANDIDATE_NOT_COMPLETED_TEXT: (name: string) => `${name} has not completed the interview yet.`,
         REPORT_PREFIX: (name: string) => `*Report: ${name}*\n\n`,
 
-        // /remove command
-        SPECIFY_NUM_REMOVE: 'Provide a number from the list: `/remove 1`',
+        // Delete confirmation
+        DELETE_CONFIRM: (name: string) => `Delete candidate *${name}*?`,
         CANDIDATE_REMOVED: (name: string) => `Candidate *${name}* deleted.`,
 
         // Command descriptions
         CMD_INFO_DESC: 'Service capabilities',
-        CMD_CREATE_DESC: 'Add a candidate — /create First Last',
+        CMD_CREATE_DESC: 'Add a candidate',
         CMD_LIST_DESC: 'List candidates with statuses',
-        CMD_CANDIDATE_DESC: 'Report for a candidate — /candidate Number',
-        CMD_REMOVE_DESC: 'Delete a candidate — /remove Number',
     },
 
     TG_CANDIDATE: {

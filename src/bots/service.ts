@@ -64,7 +64,7 @@ export class DialogService {
     }
 
     async getInterviewsByRecruiter(recruiterChatId: number): Promise<InterviewWithCandidate[]> {
-        const candidates = await this.candidateModel.find({ recruiterChatId });
+        const candidates = await this.candidateModel.find({ recruiterChatId }).sort({ createdAt: -1 });
         const candidateIds = candidates.map((c) => c._id);
         const interviews = await this.interviewModel
             .find({ candidateId: { $in: candidateIds } })

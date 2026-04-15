@@ -4,14 +4,6 @@ export const RU = {
     },
 
     CHAT: {
-        RECRUITER_START:
-            '👋 *HoReCa Recruit* — сервис психологической оценки кандидатов.\n\n' +
-            'Кандидат проходит поведенческое интервью из 4 вопросов, после чего вы получаете развёрнутый отчёт.\n\n' +
-            '*Команды:*\n' +
-            '`/create Имя Фамилия` — добавить кандидата и получить ссылку для интервью\n' +
-            '`/list` — список всех кандидатов со статусами\n' +
-            '`/candidate 1` — ответы и отчёт по кандидату из списка\n' +
-            '`/remove 1` — удалить кандидата из списка',
         CANDIDATE_THANK_YOU:
             '🙏 Спасибо, что прошли интервью!\n\n' +
             'Ваши ответы получены и будут рассмотрены. Мы свяжемся с вами в ближайшее время.',
@@ -26,24 +18,33 @@ export const RU = {
     },
 
     VK_RECRUIT: {
-        // Keyboard button labels
+        // Persistent keyboard buttons
+        BTN_ADD_CANDIDATE: '➕ Добавить',
         BTN_LIST: '📋 Список',
-        BTN_ADD_CANDIDATE: '➕ Добавить кандидата',
         BTN_INFO: 'ℹ️ Инфо',
-        BTN_REPORT: '👁 Отчёт',
-        BTN_DELETE: '🗑 Удалить',
+
+        // Inline action buttons
+        BTN_REPORT: '📊 Отчёт',
+        BTN_DELETE: '❌ Удалить',
+        BTN_CONFIRM_DELETE: '✅ Да, удалить',
+        BTN_CANCEL_DELETE: '↩️ Отмена',
 
         // Welcome / info
-        WELCOME: 'HoReCa Recruit — сервис психологической оценки кандидатов.\n\nВыберите действие:',
+        WELCOME:
+            '👋 HoReCa Recruit — сервис психологической оценки кандидатов для сферы HoReCa.\n\n' +
+            'Как работает:\n' +
+            '1. Нажмите ➕ Добавить — введите имя кандидата и получите ссылку\n' +
+            '2. Отправьте ссылку кандидату — он пройдёт интервью из 4 вопросов\n' +
+            '3. После завершения в 📋 Список появится готовый отчёт',
         CHOOSE_ACTION: 'Выберите действие:',
 
-        // Candidate creation
+        // Add candidate dialog
         ENTER_NAME_PROMPT: 'Введите имя и фамилию кандидата:',
-        SPECIFY_NAME_HINT: 'Укажите имя: создать Иван Иванов',
         CANDIDATE_ADDED: (name: string, link: string) =>
             `✅ Кандидат ${name} добавлен.\n\nСсылка для интервью:\n${link}`,
 
         // List / status labels
+        LIST_HEADER: 'Кандидаты:',
         NO_CANDIDATES: 'Кандидатов пока нет.',
         STATUS_PENDING: '⏳ Не начал',
         STATUS_IN_PROGRESS: '🔄 В процессе',
@@ -55,12 +56,11 @@ export const RU = {
         REPORT_PREFIX: (name: string) => `Отчёт: ${name}\n\n`,
 
         // Candidate lookup / removal
-        CANDIDATE_NOT_FOUND_NUM: (num: number) => `Кандидат ${num} не найден.`,
         CANDIDATE_NOT_FOUND: 'Кандидат не найден.',
         CANDIDATE_NOT_COMPLETED: (name: string) => `${name} ещё не завершил интервью.`,
+        DELETE_CONFIRM: (name: string) => `Удалить кандидата ${name}?`,
+        DELETE_CANCELLED: 'Удаление отменено.',
         CANDIDATE_DELETED: (name: string) => `Кандидат ${name} удалён.`,
-        SPECIFY_NUM_CANDIDATE: 'Укажите номер: кандидат 1',
-        SPECIFY_NUM_DELETE: 'Укажите номер: удалить 1',
     },
 
     VK_CANDIDATE: {
@@ -78,35 +78,54 @@ export const RU = {
     },
 
     TG_RECRUIT: {
-        // /create command
-        SPECIFY_NAME_HINT: 'Укажите имя кандидата: `/create Иван Иванов`',
+        // Persistent reply keyboard buttons
+        BTN_ADD: '➕ Добавить',
+        BTN_LIST: '📋 Список',
+        BTN_INFO: 'ℹ️ Инфо',
+
+        // Inline action buttons
+        BTN_REPORT: '📊 Отчёт',
+        BTN_DELETE: '❌ Удалить',
+        BTN_CONFIRM_DELETE: '✅ Да, удалить',
+        BTN_CANCEL_DELETE: '↩️ Отмена',
+        BTN_COPY_LINK: '📋 Скопировать ссылку',
+
+        // Welcome / info
+        WELCOME:
+            '👋 *HoReCa Recruit* — сервис психологической оценки кандидатов для сферы HoReCa.\n\n' +
+            '*Как работает:*\n' +
+            '1. Нажмите ➕ Добавить — введите имя кандидата и получите ссылку\n' +
+            '2. Отправьте ссылку кандидату — он пройдёт интервью из 4 вопросов\n' +
+            '3. После завершения в 📋 Список появится готовый отчёт',
+
+        // Add candidate dialog
+        ENTER_NAME_PROMPT: 'Введите имя и фамилию кандидата:',
         CANDIDATE_ADDED: (name: string, link: string) =>
             `✅ Кандидат ${name} добавлен.\n\nСсылка для интервью:\n${link}`,
 
-        // /list command
-        NO_CANDIDATES: 'Кандидатов пока нет. Добавьте первого: `/create Имя Фамилия`',
+        // List / status labels
+        LIST_HEADER: 'Кандидаты:',
+        NO_CANDIDATES: 'Кандидатов пока нет.',
         STATUS_PENDING: '⏳ Не начал',
         STATUS_IN_PROGRESS: '🔄 В процессе',
         STATUS_COMPLETED: '✅ Завершил',
         STATUS_CANCELLED: '❌ Отменил',
-        LIST_FOOTER: '\n\nДля просмотра отчёта: `/candidate <номер>`',
 
-        // /candidate command
-        SPECIFY_NUM_CANDIDATE: 'Укажите номер из списка: `/candidate 1`',
+        // Report
         CANDIDATE_NOT_FOUND: (num: number) => `Кандидат с номером ${num} не найден.`,
+        CANDIDATE_NOT_FOUND_TEXT: 'Кандидат не найден.',
         CANDIDATE_NOT_COMPLETED: (name: string) => `*${name}* ещё не завершил интервью.`,
+        CANDIDATE_NOT_COMPLETED_TEXT: (name: string) => `${name} ещё не завершил интервью.`,
         REPORT_PREFIX: (name: string) => `*Отчёт: ${name}*\n\n`,
 
-        // /remove command
-        SPECIFY_NUM_REMOVE: 'Укажите номер из списка: `/remove 1`',
+        // Delete confirmation
+        DELETE_CONFIRM: (name: string) => `Удалить кандидата *${name}*?`,
         CANDIDATE_REMOVED: (name: string) => `Кандидат *${name}* удалён.`,
 
         // Command descriptions
         CMD_INFO_DESC: 'Возможности сервиса',
-        CMD_CREATE_DESC: 'Добавить кандидата — /create Имя Фамилия',
+        CMD_CREATE_DESC: 'Добавить кандидата',
         CMD_LIST_DESC: 'Список кандидатов со статусами',
-        CMD_CANDIDATE_DESC: 'Отчёт по кандидату — /candidate Номер',
-        CMD_REMOVE_DESC: 'Удалить кандидата — /remove Номер',
     },
 
     TG_CANDIDATE: {
