@@ -5,8 +5,8 @@
   "scripts": {
     "test": "NODE_ENV=test vitest run",
     "build": "tsc",
-    "start": "dotenv -e .env.dev -- nodemon --exec ts-node -r tsconfig-paths/register src/index.ts",
-    "start:prod": "dotenv -e .env.prod nodemon --exec ts-node -r tsconfig-paths/register src/index.ts",
+    "start": "dotenv -e .env.dev -- nodemon --exec ts-node src/index.ts",
+    "start:prod": "dotenv -e .env.prod nodemon --exec ts-node src/index.ts",
     "prepare": "husky"
   },
   "keywords": [],
