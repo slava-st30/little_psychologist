@@ -20,6 +20,7 @@ export class LlmService {
     public async getAnswer(
         history: ChatMessage[],
         systemPrompt: string = role_prompt,
+        attempt = 1,
     ): Promise<string> {
         try {
             const response = await this.client.chat.completions.create({
@@ -36,6 +37,19 @@ export class LlmService {
 
             return response.choices[0].message.content ?? t('COMMON').ERROR_MESSAGE;
         } catch (error) {
+            const isNetworkError =
+                error instanceof Error &&
+                ('code' in error
+                    ? ['ECONNRESET', 'ECONNREFUSED', 'ETIMEDOUT', 'ENOTFOUND'].includes(
+                          (error as NodeJS.ErrnoException).code ?? '',
+                      )
+                    : error.message === 'terminated' || error.message === 'fetch failed');
+
+            const delays = [5000, 10000, 30000];
+            if (isNetworkError && attempt <= delays.length) {
+                await new Promise((resolve) => setTimeout(resolve, delays[attempt - 1]));
+                return this.getAnswer(history, systemPrompt, attempt + 1);
+            }
             console.error('LlmService getAnswer error:', error);
             return t('COMMON').ERROR_MESSAGE;
         }
