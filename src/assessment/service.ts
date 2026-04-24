@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Types } from 'mongoose';
-import { LlmService, type ChatMessage } from '@llm';
+import { LlmService, LLM_CHEAP_MODEL, type ChatMessage } from '@llm';
 import { DialogService } from '@bots/service';
 import { ASSESSMENT_QUESTIONS } from './config';
 import { ASSESSMENT_SYSTEM_PROMPT, ANSWER_CHECK_PROMPT } from './prompts';
@@ -63,7 +63,7 @@ export class AssessmentService {
                 content: a.CHECK_QUERY_TEMPLATE(currentQuestion.text, answer),
             },
         ];
-        const checkResult = await this.llmService.getAnswer(checkHistory, ANSWER_CHECK_PROMPT);
+        const checkResult = await this.llmService.getAnswer(checkHistory, ANSWER_CHECK_PROMPT, LLM_CHEAP_MODEL);
 
         if (checkResult.trim() === 'SUFFICIENT') {
             return this.acceptAnswer(chatId, state, answer);
