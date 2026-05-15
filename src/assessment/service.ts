@@ -63,7 +63,7 @@ export class AssessmentService {
                 content: a.CHECK_QUERY_TEMPLATE(currentQuestion.text, answer),
             },
         ];
-        const checkResult = await this.llmService.getAnswer(checkHistory, ANSWER_CHECK_PROMPT, LLM_CHEAP_MODEL);
+        const checkResult = await this.llmService.getAnswer(checkHistory, ANSWER_CHECK_PROMPT, LLM_CHEAP_MODEL, 500);
 
         if (checkResult.trim() === 'SUFFICIENT') {
             return this.acceptAnswer(chatId, state, answer);

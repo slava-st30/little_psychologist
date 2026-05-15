@@ -21,12 +21,13 @@ export class LlmService {
         history: ChatMessage[],
         systemPrompt: string = role_prompt,
         model: string = LLM_MODEL,
+        maxTokens = 4096,
         attempt = 1,
     ): Promise<string> {
         try {
             const response = await this.client.chat.completions.create({
                 model,
-                max_tokens: 4096,
+                max_tokens: maxTokens,
                 messages: [
                     {
                         role: 'system',
@@ -49,7 +50,7 @@ export class LlmService {
             const delays = [5000, 10000, 30000];
             if (isNetworkError && attempt <= delays.length) {
                 await new Promise((resolve) => setTimeout(resolve, delays[attempt - 1]));
-                return this.getAnswer(history, systemPrompt, model, attempt + 1);
+                return this.getAnswer(history, systemPrompt, model, maxTokens, attempt + 1);
             }
             console.error('LlmService getAnswer error:', error);
             return t('COMMON').ERROR_MESSAGE;
